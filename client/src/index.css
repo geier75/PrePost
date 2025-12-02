@@ -51,61 +51,54 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-
-  /* Custom Cyberpunk Colors */
-  --color-neon-green: #00FF41;
-  --color-neon-orange: #FF5F00;
-  --color-void-black: #050505;
-  --color-cyber-gray: #1a1a1a;
-  --color-metallic: #C0C0C0;
 }
 
 :root {
-  /* Cyberpunk Neo-Brutalism Palette */
-  --background: oklch(0.05 0 0); /* #050505 Void Black */
-  --foreground: oklch(0.95 0 0); /* #f2f2f2 Metallic White */
+  /* Elegant Dark TV Channel Palette */
+  --background: oklch(0.08 0.02 260); /* Deep Midnight Blue */
+  --foreground: oklch(0.98 0 0); /* Pure White */
   
-  --card: oklch(0.1 0 0); /* #1a1a1a Cyber Gray */
-  --card-foreground: oklch(0.95 0 0);
+  --card: oklch(0.12 0.02 260); /* Slightly lighter midnight */
+  --card-foreground: oklch(0.98 0 0);
   
-  --popover: oklch(0.1 0 0);
-  --popover-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.12 0.02 260);
+  --popover-foreground: oklch(0.98 0 0);
   
-  --primary: oklch(0.85 0.25 140); /* #00FF41 Neon Green */
-  --primary-foreground: oklch(0.05 0 0);
+  --primary: oklch(0.98 0 0); /* White for primary actions (clean) */
+  --primary-foreground: oklch(0.08 0.02 260);
   
-  --secondary: oklch(0.65 0.25 30); /* #FF5F00 Neon Orange */
-  --secondary-foreground: oklch(0.05 0 0);
+  --secondary: oklch(0.2 0.02 260); /* Subtle dark blue */
+  --secondary-foreground: oklch(0.98 0 0);
   
-  --muted: oklch(0.2 0 0);
-  --muted-foreground: oklch(0.6 0 0);
+  --muted: oklch(0.2 0.02 260);
+  --muted-foreground: oklch(0.7 0.02 260);
   
-  --accent: oklch(0.2 0 0);
-  --accent-foreground: oklch(0.95 0 0);
+  --accent: oklch(0.2 0.02 260);
+  --accent-foreground: oklch(0.98 0 0);
   
-  --destructive: oklch(0.6 0.25 20);
-  --destructive-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.6 0.2 20);
+  --destructive-foreground: oklch(0.98 0 0);
   
-  --border: oklch(0.25 0 0);
-  --input: oklch(0.25 0 0);
-  --ring: oklch(0.85 0.25 140); /* Neon Green Ring */
+  --border: oklch(0.2 0.02 260);
+  --input: oklch(0.2 0.02 260);
+  --ring: oklch(0.98 0 0);
   
-  --radius: 0rem; /* Brutalist - no rounded corners */
+  --radius: 0.75rem; /* Elegant rounded corners */
   
-  --chart-1: oklch(0.85 0.25 140); /* Green */
-  --chart-2: oklch(0.65 0.25 30); /* Orange */
-  --chart-3: oklch(0.5 0 0);
-  --chart-4: oklch(0.7 0 0);
-  --chart-5: oklch(0.9 0 0);
+  --chart-1: oklch(0.98 0 0);
+  --chart-2: oklch(0.8 0 0);
+  --chart-3: oklch(0.6 0 0);
+  --chart-4: oklch(0.4 0 0);
+  --chart-5: oklch(0.2 0 0);
   
-  --sidebar: oklch(0.08 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.85 0.25 140);
-  --sidebar-primary-foreground: oklch(0.05 0 0);
-  --sidebar-accent: oklch(0.15 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.25 0 0);
-  --sidebar-ring: oklch(0.85 0.25 140);
+  --sidebar: oklch(0.05 0.02 260);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.98 0 0);
+  --sidebar-primary-foreground: oklch(0.08 0.02 260);
+  --sidebar-accent: oklch(0.15 0.02 260);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.2 0.02 260);
+  --sidebar-ring: oklch(0.98 0 0);
 }
 
 @layer base {
@@ -113,33 +106,15 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-mono antialiased;
-    background-image: 
-      linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
-    background-size: 30px 30px;
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Subtle noise texture for TV feel */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
   }
   
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: var(--background);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border: 1px solid var(--primary);
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--primary);
-  }
-
-  /* Typography Overrides */
+  /* Typography Overrides - Clean & Modern */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Orbitron', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -168,34 +143,20 @@
     .container {
       padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1400px; /* Wider for dashboard feel */
+      max-width: 1200px;
     }
   }
   
-  /* Cyberpunk Utilities */
-  .cyber-border {
-    @apply border border-primary/30 relative;
-  }
-  
-  .cyber-border::before {
-    content: '';
-    @apply absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary;
-  }
-  
-  .cyber-border::after {
-    content: '';
-    @apply absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-primary;
-  }
-  
-  .text-glow {
-    text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
-  }
-  
-  .text-glow-orange {
-    text-shadow: 0 0 10px rgba(255, 95, 0, 0.5);
-  }
-  
+  /* TV Channel Utilities */
   .glass-panel {
-    @apply bg-card/80 backdrop-blur-md border border-white/10;
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+  
+  .tv-glow {
+    box-shadow: 0 0 40px -10px rgba(255, 255, 255, 0.1);
+  }
+  
+  .browser-frame {
+    @apply rounded-xl border border-white/10 bg-background/50 backdrop-blur-md overflow-hidden shadow-2xl;
   }
 }
