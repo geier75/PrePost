@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { analyzeContentWithClaude } from '@/lib/ai-service-enhanced';
+import { rateLimit } from '@/lib/rate-limit';
+import { analyzeRequestSchema, formatZodErrors } from '@/lib/validation';
 
-// Mock AI Analysis - Replace with real OpenAI/Claude integration
-async function analyzeContentWithAI(content: string, platform: string) {
+// Mock AI Analysis - DEPRECATED: Use analyzeContentWithClaude instead
+async function analyzeContentWithAI_DEPRECATED(content: string, platform: string) {
   // Simulate AI processing delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
@@ -76,9 +79,34 @@ async function analyzeContentWithAI(content: string, platform: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
-    const body = await request.json();
-    const { content, platform = 'other' } = body;
+    // Rate Limiting
+    const ip = request.ip ?? request.headers.get('x-forwarded-for')?.split(',')[0] ?? '127.0.0.1';
+    const limiter = rateLimit({ interval: 60000, limit: 10 });
+    
+    try {
+      await limiter.check(request, 10, ip);
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    
+    // Validate input with Zod
+    const validationResult = analyzeRequestSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: formatZodErrors(validationResult.error) },
+        { status: 400 }
+      );
+    }
+    
+    const { content, platform } = validationResult.data;
     
     // Validation
     if (!content || typeof content !== 'string') {
@@ -102,8 +130,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Perform analysis
-    const analysis = await analyzeContentWithAI(content, platform);
+    // Perform analysis with enhanced AI service
+    const analysis = await analyzeContentWithClaude(content, platform);
     
     // TODO: Save to database (Supabase)
     // await supabase.from('analyses').insert({
@@ -114,9 +142,25 @@ export async function POST(request: NextRequest) {
     //   created_at: new Date().toISOString()
     // });
     
+    const responseTime = Date.now() - startTime;
+    
     return NextResponse.json({
       success: true,
-      analysis
+      analysis: {
+        overallRisk: analysis.overall_risk,
+        riskScore: analysis.risk_score,
+        recommendation: analysis.recommendation,
+        categories: analysis.categories,
+        suggestions: analysis.suggestions,
+        improvedVersion: analysis.improved_version,
+        confidence: analysis.confidence,
+        reasoning: analysis.reasoning,
+      }
+    }, {
+      headers: {
+        'X-Response-Time': `${responseTime}ms`,
+        'X-GDPR-Compliant': 'true',
+      }
     });
     
   } catch (error) {

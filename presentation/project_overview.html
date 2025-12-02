@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background-color: #0a0a0a;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            padding: 60px;
+            box-sizing: border-box;
+            gap: 60px;
+        }
+
+        .content-column {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .visual-column {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: #ff9900;
+            margin: 0 0 30px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(255, 153, 0, 0.3);
+            border-bottom: 2px solid #ff9900;
+            padding-bottom: 15px;
+            display: inline-block;
+        }
+
+        .main-statement {
+            font-size: 28px;
+            line-height: 1.4;
+            color: #fff;
+            margin-bottom: 40px;
+            font-weight: 300;
+            border-left: 4px solid #00ff41;
+            padding-left: 20px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-item {
+            font-size: 22px;
+            color: #e0e0e0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-marker {
+            color: #00ff41;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            margin-right: 15px;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .image-container {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.15);
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .image-container::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 40px;
+            height: 40px;
+            border-top: 4px solid #ff9900;
+            border-right: 4px solid #ff9900;
+        }
+
+        .image-container::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: -10px;
+            width: 40px;
+            height: 40px;
+            border-bottom: 4px solid #ff9900;
+            border-left: 4px solid #ff9900;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: contrast(1.1) brightness(1.1);
+        }
+
+        .stat-box {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ff41;
+            padding: 15px 25px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            color: #00ff41;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #e0e0e0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="content-column">
+            <h2>Project Overview</h2>
+            <div class="main-statement">
+                PREPOST protects professionals from career-damaging social media posts through real-time AI analysis.
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <span class="feature-marker">01</span>
+                    Real-time content analysis using Claude AI
+                </li>
+                <li class="feature-item">
+                    <span class="feature-marker">02</span>
+                    Risk scoring (0-100) across 8 categories
+                </li>
+                <li class="feature-item">
+                    <span class="feature-marker">03</span>
+                    Actionable improvement suggestions
+                </li>
+                <li class="feature-item">
+                    <span class="feature-marker">04</span>
+                    Multi-platform support (LinkedIn, Twitter)
+                </li>
+            </ul>
+        </div>
+        <div class="visual-column">
+            <div class="image-container">
+                <img src="/home/ubuntu/PrePost/presentation-assets/ai-analysis.jpg" alt="AI Analysis Visualization">
+            </div>
+        </div>
+    </div>
+</body>
+</html>

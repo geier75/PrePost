@@ -1,232 +1,173 @@
 /**
- * Health Check API Endpoints
- * ISO 27001 & Monitoring Compliance
+ * Health Check Endpoint - Standalone Version
+ * Provides system health status for monitoring (no external services)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase-service';
+import { NextResponse } from 'next/server';
+import { existsSync, statSync } from 'fs';
+import { join } from 'path';
 
-// Service health status
+interface HealthCheck {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: string;
+  uptime: number;
+  version: string;
+  mode: string;
+  checks: {
+    database: HealthStatus;
+    ai: HealthStatus;
+    filesystem: HealthStatus;
+  };
+  metrics?: {
+    memoryUsage: NodeJS.MemoryUsage;
+    cpuUsage: NodeJS.CpuUsage;
+  };
+}
+
 interface HealthStatus {
-  service: string;
-  status: 'healthy' | 'degraded' | 'down';
-  responseTime: number;
-  lastChecked: string;
+  status: 'ok' | 'warning' | 'error';
+  message: string;
   details?: any;
 }
 
-// Main health check
-export async function GET(request: NextRequest) {
+function checkDatabase(): HealthStatus {
+  try {
+    const dataDir = join(process.cwd(), 'data');
+    
+    if (!existsSync(dataDir)) {
+      return {
+        status: 'warning',
+        message: 'Data directory does not exist (will be created on first use)',
+      };
+    }
+
+    const stats = statSync(dataDir);
+    if (!stats.isDirectory()) {
+      return {
+        status: 'error',
+        message: 'Data path exists but is not a directory',
+      };
+    }
+
+    // Check if we can write to the directory
+    const testFile = join(dataDir, '.health-check');
+    try {
+      require('fs').writeFileSync(testFile, 'test');
+      require('fs').unlinkSync(testFile);
+    } catch (err) {
+      return {
+        status: 'error',
+        message: 'Data directory is not writable',
+      };
+    }
+
+    return {
+      status: 'ok',
+      message: 'Local database accessible and writable',
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+function checkAI(): HealthStatus {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  
+  if (!apiKey) {
+    return {
+      status: 'warning',
+      message: 'ANTHROPIC_API_KEY not configured (will use mock fallback)',
+    };
+  }
+
+  if (!apiKey.startsWith('sk-ant-')) {
+    return {
+      status: 'error',
+      message: 'ANTHROPIC_API_KEY has invalid format',
+    };
+  }
+
+  return {
+    status: 'ok',
+    message: 'AI service configured (Anthropic Claude)',
+  };
+}
+
+function checkFilesystem(): HealthStatus {
+  try {
+    const cwd = process.cwd();
+    const stats = statSync(cwd);
+    
+    if (!stats.isDirectory()) {
+      return {
+        status: 'error',
+        message: 'Working directory is not accessible',
+      };
+    }
+
+    return {
+      status: 'ok',
+      message: 'Filesystem accessible',
+      details: {
+        cwd,
+      },
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+export async function GET() {
   const startTime = Date.now();
-  const healthChecks: HealthStatus[] = [];
+
+  const checks = {
+    database: checkDatabase(),
+    ai: checkAI(),
+    filesystem: checkFilesystem(),
+  };
+
+  // Determine overall status
+  let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
   
-  // Check Database
-  const dbHealth = await checkDatabase();
-  healthChecks.push(dbHealth);
-  
-  // Check AI Service
-  const aiHealth = await checkAIService();
-  healthChecks.push(aiHealth);
-  
-  // Check Payment Service
-  const paymentHealth = await checkPaymentService();
-  healthChecks.push(paymentHealth);
-  
-  // Check Auth Service
-  const authHealth = await checkAuthService();
-  healthChecks.push(authHealth);
-  
-  // Overall status
-  const allHealthy = healthChecks.every(check => check.status === 'healthy');
-  const anyDown = healthChecks.some(check => check.status === 'down');
-  
-  const overallStatus = anyDown ? 'down' : allHealthy ? 'healthy' : 'degraded';
-  
-  return NextResponse.json({
-    status: overallStatus,
+  const hasError = Object.values(checks).some((check) => check.status === 'error');
+  const hasWarning = Object.values(checks).some((check) => check.status === 'warning');
+
+  if (hasError) {
+    status = 'unhealthy';
+  } else if (hasWarning) {
+    status = 'degraded';
+  }
+
+  const health: HealthCheck = {
+    status,
     timestamp: new Date().toISOString(),
-    version: process.env.APP_VERSION || '1.0.0',
     uptime: process.uptime(),
-    responseTime: Date.now() - startTime,
-    services: healthChecks,
-    compliance: {
-      gdpr: true,
-      iso27001: true,
-      euAiAct: true,
+    version: '2.0.0-standalone',
+    mode: 'standalone',
+    checks,
+    metrics: {
+      memoryUsage: process.memoryUsage(),
+      cpuUsage: process.cpuUsage(),
     },
-  }, {
-    status: overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 206 : 503,
+  };
+
+  const responseTime = Date.now() - startTime;
+
+  // Return appropriate status code
+  const httpStatus = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503;
+
+  return NextResponse.json(health, {
+    status: httpStatus,
     headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'X-Health-Status': overallStatus,
+      'Cache-Control': 'no-store, must-revalidate',
+      'X-Response-Time': `${responseTime}ms`,
+      'X-Health-Status': status,
     },
   });
-}
-
-// Check database health
-async function checkDatabase(): Promise<HealthStatus> {
-  const startTime = Date.now();
-  
-  try {
-    // Simple query to test connection
-    const { error } = await supabase
-      .from('users')
-      .select('count')
-      .limit(1);
-    
-    if (error) throw error;
-    
-    return {
-      service: 'database',
-      status: 'healthy',
-      responseTime: Date.now() - startTime,
-      lastChecked: new Date().toISOString(),
-      details: {
-        provider: 'Supabase',
-        region: process.env.SUPABASE_REGION || 'eu-central-1',
-      },
-    };
-  } catch (error) {
-    return {
-      service: 'database',
-      status: 'down',
-      responseTime: Date.now() - startTime,
-      lastChecked: new Date().toISOString(),
-      details: {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-    };
-  }
-}
-
-// Check AI service health
-async function checkAIService(): Promise<HealthStatus> {
-  const startTime = Date.now();
-  
-  try {
-    // Check if API key exists
-    const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
-    
-    if (!hasApiKey) {
-      return {
-        service: 'ai',
-        status: 'degraded',
-        responseTime: Date.now() - startTime,
-        lastChecked: new Date().toISOString(),
-        details: {
-          provider: 'Anthropic Claude',
-          issue: 'API key not configured',
-        },
-      };
-    }
-    
-    return {
-      service: 'ai',
-      status: 'healthy',
-      responseTime: Date.now() - startTime,
-      lastChecked: new Date().toISOString(),
-      details: {
-        provider: 'Anthropic Claude',
-        model: 'claude-3-opus',
-      },
-    };
-  } catch (error) {
-    return {
-      service: 'ai',
-      status: 'down',
-      responseTime: Date.now() - startTime,
-      lastChecked: new Date().toISOString(),
-      details: {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-    };
-  }
-}
-
-// Check payment service health
-async function checkPaymentService(): Promise<HealthStatus> {
-  const startTime = Date.now();
-  
-  try {
-    const hasApiKey = !!process.env.STRIPE_SECRET_KEY;
-    
-    if (!hasApiKey) {
-      return {
-        service: 'payments',
-        status: 'degraded',
-        responseTime: Date.now() - startTime,
-        lastChecked: new Date().toISOString(),
-        details: {
-          provider: 'Stripe',
-          issue: 'API key not configured',
-        },
-      };
-    }
-    
-    return {
-      service: 'payments',
-      status: 'healthy',
-      responseTime: Date.now() - startTime,
-      lastChecked: new Date().toISOString(),
-      details: {
-        provider: 'Stripe',
-        pciCompliant: true,
-      },
-    };
-  } catch (error) {
-    return {
-      service: 'payments',
-      status: 'down',
-      responseTime: Date.now() - startTime,
-      lastChecked: new Date().toISOString(),
-      details: {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-    };
-  }
-}
-
-// Check auth service health
-async function checkAuthService(): Promise<HealthStatus> {
-  const startTime = Date.now();
-  
-  try {
-    const hasClerkKey = !!process.env.CLERK_SECRET_KEY;
-    
-    if (!hasClerkKey) {
-      // Fallback auth is available
-      return {
-        service: 'authentication',
-        status: 'degraded',
-        responseTime: Date.now() - startTime,
-        lastChecked: new Date().toISOString(),
-        details: {
-          provider: 'Mock Auth (Clerk not configured)',
-          mfaEnabled: false,
-        },
-      };
-    }
-    
-    return {
-      service: 'authentication',
-      status: 'healthy',
-      responseTime: Date.now() - startTime,
-      lastChecked: new Date().toISOString(),
-      details: {
-        provider: 'Clerk',
-        mfaEnabled: true,
-        ssoEnabled: true,
-      },
-    };
-  } catch (error) {
-    return {
-      service: 'authentication',
-      status: 'down',
-      responseTime: Date.now() - startTime,
-      lastChecked: new Date().toISOString(),
-      details: {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-    };
-  }
 }
