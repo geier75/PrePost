@@ -52,7 +52,7 @@ export default function Home() {
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             {t('system_online')}
           </div>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold">
             JD
           </div>
@@ -96,7 +96,7 @@ export default function Home() {
           <Lock className="w-4 h-4 text-purple-400" /> {t('connected_platforms')}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {['facebook', 'twitter', 'linkedin', 'instagram'].map(id => (
+          {['google', 'facebook', 'twitter', 'linkedin', 'instagram'].map(id => (
             <Button 
               key={id}
               variant="outline" 
@@ -104,7 +104,7 @@ export default function Home() {
               onClick={() => openSimulator(id)}
             >
               <span className="capitalize">{id}</span>
-              <span className="text-[10px] text-muted-foreground">{t('open_simulator')}</span>
+              <span className="text-[10px] text-muted-foreground">OPEN LIVE BROWSER</span>
             </Button>
           ))}
         </div>
